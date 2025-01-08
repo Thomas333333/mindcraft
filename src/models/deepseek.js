@@ -1,15 +1,15 @@
-// This code uses Dashscope and HTTP to ensure the latest support for the Qwen model.
+// This code uses Dashscope and HTTP to ensure the latest support for the Deepseek model.
 // Qwen is also compatible with the OpenAI API format;
 
 import { getKey } from '../utils/keys.js';
 
-export class Qwen {
+export class Deepseek {
     constructor(modelName, url) {
         this.modelName = modelName;
-        this.url = url || 'https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation';
+        this.url = url || 'https://api.deepseek.com/chat/completions';
 
 
-        this.apiKey = getKey('QWEN_API_KEY');
+        this.apiKey = getKey('Deepseek_API_KEY');
     }
 
     async sendRequest(turns, systemMessage, stopSeq = '***', retryCount = 0) {
@@ -19,28 +19,31 @@ export class Qwen {
         }
 
         const data = {
-            model: this.modelName || 'qwen-plus',
-            input: { messages: [{ role: 'system', content: systemMessage }, ...turns] },
-            parameters: { result_format: 'message', stop: stopSeq },
+            model: this.modelName || 'deepseek-chat',
+            messages: [{ role: 'system', content: systemMessage }, ...turns],
+            stream: false,
         };
 
         // Add default user message if all messages are 'system' role
         if (turns.every((msg) => msg.role === 'system')) {
-            data.input.messages.push({ role: 'user', content: 'hello' });
+            data.messages.push({ role: 'user', content: 'hello' });
         }
 
-        if (!data.model || !data.input || !data.input.messages || !data.parameters) {
+        if (!data.model || !data.messages || data.messages.length === 0) {
             console.error('Invalid request data format:', data);
             throw new Error('Invalid request data format.');
         }
 
         try {
             const response = await this._makeHttpRequest(this.url, data);
-            const choice = response?.output?.choices?.[0];
+            // console.log('answer:', response?.choices?.[0]);
 
+            const choice = response?.choices?.[0];
+            console.log('answer:', choice?.message?.content);
             if (choice?.finish_reason === 'length' && turns.length > 0) {
                 return this.sendRequest(turns.slice(1), systemMessage, stopSeq, retryCount + 1);
             }
+
 
             return choice?.message?.content || 'No content received.';
         } catch (err) {
@@ -49,32 +52,32 @@ export class Qwen {
         }
     }
 
-    async embed(text) {
-        if (!text || typeof text !== 'string') {
-            console.error('Invalid embedding input: text must be a non-empty string.');
-            return 'Invalid embedding input: text must be a non-empty string.';
-        }
+    // async embed(text) {
+    //     if (!text || typeof text !== 'string') {
+    //         console.error('Invalid embedding input: text must be a non-empty string.');
+    //         return 'Invalid embedding input: text must be a non-empty string.';
+    //     }
 
-        const data = {
-            model: 'text-embedding-v2',
-            input: { texts: [text] },
-            parameters: { text_type: 'query' },
-        };
+    //     const data = {
+    //         model: 'text-embedding-v2',
+    //         input: { texts: [text] },
+    //         parameters: { text_type: 'query' },
+    //     };
 
-        if (!data.model || !data.input || !data.input.texts || !data.parameters) {
-            console.error('Invalid embedding request data format:', data);
-            throw new Error('Invalid embedding request data format.');
-        }
+    //     if (!data.model || !data.input || !data.input.texts || !data.parameters) {
+    //         console.error('Invalid embedding request data format:', data);
+    //         throw new Error('Invalid embedding request data format.');
+    //     }
 
-        try {
-            const response = await this._makeHttpRequest(this.url, data);
-            const embedding = response?.output?.embeddings?.[0]?.embedding;
-            return embedding || 'No embedding result received.';
-        } catch (err) {
-            console.error('Error occurred:', err);
-            return 'An error occurred, please try again.';
-        }
-    }
+    //     try {
+    //         const response = await this._makeHttpRequest(this.url, data);
+    //         const embedding = response?.output?.embeddings?.[0]?.embedding;
+    //         return embedding || 'No embedding result received.';
+    //     } catch (err) {
+    //         console.error('Error occurred:', err);
+    //         return 'An error occurred, please try again.';
+    //     }
+    // }
 
     async _makeHttpRequest(url, data) {
         const headers = {

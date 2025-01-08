@@ -2,7 +2,7 @@ import { Agent } from '../agent/agent.js';
 import yargs from 'yargs';
 
 // Add global unhandled rejection handler
-process.on('unhandledRejection', (reason, promise) => {
+process.on('unhandledRejection', (reason, promise) => {//捕获全局未处理的 Promise 异常，防止程序无故崩溃。
     console.error('Unhandled Rejection at:', {
         promise: promise,
         reason: reason,
@@ -18,7 +18,7 @@ if (args.length < 1) {
 }
 
 const argv = yargs(args)
-    .option('profile', {
+    .option('profile', {//包含model信息
         alias: 'p',
         type: 'string',
         description: 'profile filepath to use for agent'
@@ -51,6 +51,7 @@ const argv = yargs(args)
     }).argv;
 
 // Wrap agent start in async IIFE with proper error handling
+//
 (async () => {
     try {
         console.log('Starting agent with profile:', argv.profile);

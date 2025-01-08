@@ -30,23 +30,24 @@ function getProfiles(args) {
 }
 
 async function main() {
-    if (settings.host_mindserver) {
+    if (settings.host_mindserver) {//true
         const mindServer = createMindServer();
     }
     mainProxy.connect();
 
     const args = parseArguments();
-    const profiles = getProfiles(args);
+    // Parsed arguments: { _: [], '$0': 'main.js' }
+    const profiles = getProfiles(args);//setting.js里的profiles
     console.log(profiles);
-    const { load_memory, init_message } = settings;
+    const { load_memory, init_message } = settings; //false "Respond with hello world and your name"
 
-    for (let i=0; i<profiles.length; i++) {
+    for (let i=0; i<profiles.length; i++) {//逐一启动每个profile
         const agent_process = new AgentProcess();
         const profile = readFileSync(profiles[i], 'utf8');
-        const agent_json = JSON.parse(profile);
+        const agent_json = JSON.parse(profile); //"name": "andy", "model": "qwen-plus"
         mainProxy.registerAgent(agent_json.name, agent_process);
         agent_process.start(profiles[i], load_memory, init_message, i, args.task_path, args.task_id);
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise(resolve => setTimeout(resolve, 1000));//延迟 1 秒，以防止代理进程之间发生冲突。
     }
 }
 

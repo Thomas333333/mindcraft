@@ -7,6 +7,7 @@ import { getCommand } from './commands/index.js';
 
 import { Gemini } from '../models/gemini.js';
 import { GPT } from '../models/gpt.js';
+import { Deepseek } from '../models/deepseek.js';
 import { Claude } from '../models/claude.js';
 import { ReplicateAPI } from '../models/replicate.js';
 import { Local } from '../models/local.js';
@@ -60,6 +61,8 @@ export class Prompter {
                 chat.api = 'qwen';
             else if (chat.model.includes('grok'))
                 chat.api = 'xai';
+            else if (chat.model.includes('deepseek'))//加入deepseek的判断
+                chat.api = 'deepseek';
             else
                 chat.api = 'ollama';
         }
@@ -87,10 +90,12 @@ export class Prompter {
             this.chat_model = new Qwen(chat.model, chat.url);
         else if (chat.api === 'xai')
             this.chat_model = new Grok(chat.model, chat.url);
+        else if (chat.api === 'deepseek')//新建deepseek的对象
+            this.chat_model = new Deepseek(chat.model, chat.url);
         else
             throw new Error('Unknown API:', api);
 
-        let embedding = this.profile.embedding;
+        let embedding = this.profile.embedding;//什么地方会用到embedding？
         if (embedding === undefined) {
             if (chat.api !== 'ollama')
                 embedding = {api: chat.api};

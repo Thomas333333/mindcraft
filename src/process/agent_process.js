@@ -7,7 +7,7 @@ export class AgentProcess {
         this.count_id = count_id;
         this.running = true;
 
-        let args = ['src/process/init_agent.js', this.name];
+        let args = ['src/process/init_agent.js', this.name];//运行脚本  后面接上对应参数设置
         args.push('-p', profile);
         args.push('-c', count_id);
         if (load_memory)
@@ -21,7 +21,7 @@ export class AgentProcess {
 
         const agentProcess = spawn('node', args, {
             stdio: 'inherit',
-            stderr: 'inherit',
+            stderr: 'inherit',//将子进程的标准输入、输出和错误直接继承到父进程中。
         });
         
         let last_restart = Date.now();
@@ -35,7 +35,7 @@ export class AgentProcess {
                 process.exit(code);
             }
 
-            if (code !== 0 && signal !== 'SIGINT') {
+            if (code !== 0 && signal !== 'SIGINT') {//子进程自动重启
                 // agent must run for at least 10 seconds before restarting
                 if (Date.now() - last_restart < 10000) {
                     console.error(`Agent process ${profile} exited too quickly and will not be restarted.`);
